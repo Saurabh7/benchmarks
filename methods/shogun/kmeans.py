@@ -96,7 +96,6 @@ class KMEANS(object):
             model = KMeans(int(clusters.group(1)), distance, centroids.T)
           else:
             model = KMeans(int(clusters.group(1)), distance)
-
           model.set_max_iter(m)
           model.train()
 

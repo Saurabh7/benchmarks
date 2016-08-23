@@ -101,16 +101,16 @@ class DTC(object):
   @return - Elapsed time in seconds or a negative value if the method was not
   successful.
   '''
-  def RunTiming(self, options):
+  def RunMetrics(self, options):
     Log.Info("Perform DTC.", self.verbose)
 
-	results = None
+    results = None
     if len(self.dataset) >= 2:
       results = self.DTCShogun(options)
     else:
       Log.Fatal("This method requires two datasets.")
 
-    metrics = {'Runtime' : results}	
+    metrics = {'Runtime' : results} 
 
     if len(self.dataset) >= 3:
 

@@ -63,22 +63,19 @@ class LASSO(object):
       # If the dataset contains two files then the second file is the responses
       # file.
       try:
+        # Load input dataset.
         Log.Info("Loading dataset", self.verbose)
-        if len(self.dataset) == 2:
-          testSet = np.genfromtxt(self.dataset[1], delimiter=',')
+        inputData = np.genfromtxt(self.dataset[0], delimiter=',')
+        responsesData = np.genfromtxt(self.dataset[1], delimiter=',')
 
-          # Get all the parameters.
-          lambda1 = re.search("-l (\d+)", options)
-          lambda1 = 0.0 if not lambda1 else int(lambda1.group(1))
-
-        # Use the last row of the training set as the responses.
-        X, y = SplitTrainData(self.dataset)
+        # Get all the parameters.
+        lambda1 = re.search("-l (\d+\.\d+)", options)
+        lambda1 = 0.0 if not lambda1 else float(lambda1.group(1))
 
         with totalTimer:
-          model = LeastAngleRegression(lasso=True)
-          model.set_max_l1_norm(lambda1) 
-          model.set_labels(RegressionLabels(y))
-          model.train(RealFeatures(X.T))
+          model = LeastAngleRegression(True)
+          model.set_labels(RegressionLabels(responsesData))
+          model.train(RealFeatures(inputData.T))
 
       except Exception as e:
         print(e)
@@ -101,37 +98,15 @@ class LASSO(object):
   '''
   def RunMetrics(self, options):
     Log.Info("Perform Lasso Regression.", self.verbose)
+    
+    if len(self.dataset) != 2:
+      Log.Fatal("This method requires two datasets.")
+      return -1
 
     results = self.LASSOShogun(options)
     if results < 0:
       return results
 
     metrics = {'Runtime' : results}
-
-    if not self.predictions:
-      self.RunTiming(options)
-
-      testData = LoadDataset(self.dataset[1])
-      truelabels = LoadDataset(self.dataset[2])
-
-      confusionMatrix = Metrics.ConfusionMatrix(truelabels, self.predictions)
-      AvgAcc = Metrics.AverageAccuracy(confusionMatrix)
-      AvgPrec = Metrics.AvgPrecision(confusionMatrix)
-      AvgRec = Metrics.AvgRecall(confusionMatrix)
-      AvgF = Metrics.AvgFMeasure(confusionMatrix)
-      AvgLift = Metrics.LiftMultiClass(confusionMatrix)
-      AvgMCC = Metrics.MCCMultiClass(confusionMatrix)
-      AvgInformation = Metrics.AvgMPIArray(confusionMatrix, truelabels, self.predictions)
-      SimpleMSE = Metrics.SimpleMeanSquaredError(truelabels, self.predictions)
-      metric_results = (AvgAcc, AvgPrec, AvgRec, AvgF, AvgLift, AvgMCC, AvgInformation)
-
-      metrics['Avg Accuracy'] = AvgAcc
-      metrics['MultiClass Precision'] = AvgPrec
-      metrics['MultiClass Recall'] = AvgRec
-      metrics['MultiClass FMeasure'] = AvgF
-      metrics['MultiClass Lift'] = AvgLift
-      metrics['MultiClass MCC'] = AvgMCC
-      metrics['MultiClass Information'] = AvgInformation
-      metrics['Simple MSE'] = SimpleMSE
 
     return metrics

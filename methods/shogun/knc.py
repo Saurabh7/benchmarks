@@ -63,8 +63,8 @@ class KNC(object):
     self.n_neighbors = 5 if not n else int(n.group(1))
 
     distance = EuclideanDistance(data, data)
-    from modshogun import KNN_KDTREE
-    knc = KNN(self.n_neighbors, distance, labels, KNN_KDTREE)
+    from modshogun import KNN_BRUTE
+    knc = KNN(self.n_neighbors, distance, labels, KNN_BRUTE)
     knc.set_leaf_size(30)
     knc.train()
 
@@ -132,6 +132,8 @@ class KNC(object):
       # Check if we need to create a model.
       if not self.model:
         trainData, labels = SplitTrainData(self.dataset)
+        trainData = RealFeatures(trainData.T)
+        labels = MulticlassLabels(labels)
         self.model = self.BuildModel(trainData, labels, options)
 
       testData = LoadDataset(self.dataset[1])
